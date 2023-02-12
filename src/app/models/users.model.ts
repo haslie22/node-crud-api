@@ -1,21 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 
-interface User {
-  id: string;
-  username: string;
-  age: number;
-  hobbies: string[];
-}
+import AbstractUsersModel from './abstract.users.model';
+import { User } from '../utils/types/types';
 
-class UsersModel {
+class UsersModel extends AbstractUsersModel {
   private users: User[] = [];
 
   async getUsers(): Promise<User[]> {
     return this.users;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.find((user) => user.id === id);
+  async getUser(id: string): Promise<User | null> {
+    return this.users.find((user) => user.id === id) || null;
   }
 
   async addUser(user: User): Promise<User> {

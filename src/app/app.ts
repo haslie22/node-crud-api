@@ -2,10 +2,9 @@ import { createServer, Server, IncomingMessage, ServerResponse } from 'http';
 
 import { validate } from 'uuid';
 
-import UsersModel from './models/users.model';
-
 import { StatusCodes } from './utils/constants/constants';
 import parseUrl from './utils/helpers/parseUrl';
+import AbstractUsersModel from './models/abstract.users.model';
 
 enum httpMethods {
   GET = 'GET',
@@ -21,17 +20,17 @@ enum Routes {
 type RequestHandler = (
   req: IncomingMessage,
   res: ServerResponse,
-  usersModel: UsersModel,
+  usersModel: AbstractUsersModel,
   idParam?: string,
 ) => Promise<void>;
 
 class App {
   private port: number;
   private server: Server;
-  private usersModel: UsersModel;
+  private usersModel: AbstractUsersModel;
   private routes: { [key: string]: { [key: string]: RequestHandler } };
 
-  constructor(port: number, usersModel: UsersModel) {
+  constructor(port: number, usersModel: AbstractUsersModel) {
     this.port = port;
     this.usersModel = usersModel;
     this.server = createServer();
@@ -72,7 +71,7 @@ class App {
   private async handleGetUserOrUsers(
     req: IncomingMessage,
     res: ServerResponse,
-    usersModel: UsersModel,
+    usersModel: AbstractUsersModel,
     id?: string,
   ): Promise<void> {
     if (id) {
@@ -82,7 +81,11 @@ class App {
     }
   }
 
-  private async handleGetUsers(req: IncomingMessage, res: ServerResponse, usersModel: UsersModel): Promise<void> {
+  private async handleGetUsers(
+    req: IncomingMessage,
+    res: ServerResponse,
+    usersModel: AbstractUsersModel,
+  ): Promise<void> {
     const users = await usersModel.getUsers();
     res.writeHead(StatusCodes.OK, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(users));
@@ -91,7 +94,7 @@ class App {
   private async handleGetUser(
     req: IncomingMessage,
     res: ServerResponse,
-    usersModel: UsersModel,
+    usersModel: AbstractUsersModel,
     idParam: string,
   ): Promise<void> {
     if (!validate(idParam)) {
@@ -108,7 +111,11 @@ class App {
     res.end(JSON.stringify(user));
   }
 
-  private async handleAddUser(req: IncomingMessage, res: ServerResponse, usersModel: UsersModel): Promise<void> {
+  private async handleAddUser(
+    req: IncomingMessage,
+    res: ServerResponse,
+    usersModel: AbstractUsersModel,
+  ): Promise<void> {
     let body = '';
     req.on('data', (chunk) => {
       body += chunk.toString();
@@ -129,7 +136,7 @@ class App {
   private async handleUpdateUser(
     req: IncomingMessage,
     res: ServerResponse,
-    usersModel: UsersModel,
+    usersModel: AbstractUsersModel,
     idParam: string,
   ): Promise<void> {
     if (!validate(idParam)) {
@@ -162,7 +169,7 @@ class App {
   private async handleDeleteUser(
     req: IncomingMessage,
     res: ServerResponse,
-    usersModel: UsersModel,
+    usersModel: AbstractUsersModel,
     idParam: string,
   ): Promise<void> {
     if (!validate(idParam)) {

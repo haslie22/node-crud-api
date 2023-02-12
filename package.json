@@ -2,10 +2,12 @@
   "name": "simple-crud-api",
   "version": "1.0.0",
   "description": "Rolling Scopes School NodeJS 2024Q1 assignment solution",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start:dev": "nodemon -w src/index.ts",
+    "start:dev": "nodemon -w src",
+    "start:dev-multi": "nodemon -w src --multi",
     "start:prod": "tsc && node dist/index.js",
+    "start:multi": "npm run start:prod -- --multi",
     "lint": "eslint src/**/*.ts",
     "format": "eslint src/**/*.ts --fix"
   },
