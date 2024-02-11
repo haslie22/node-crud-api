@@ -1,0 +1,34 @@
+{
+  "name": "simple-crud-api",
+  "version": "1.0.0",
+  "description": "Rolling Scopes School NodeJS 2024Q1 assignment solution",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "nodemon -w src/index.ts",
+    "start:prod": "tsc && node dist/index.js",
+    "lint": "eslint src/**/*.ts",
+    "format": "eslint src/**/*.ts --fix"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [],
+  "author": "Lizaveta Dondysh <lizadondysh@icloud.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/haslie22/node-crud-api/issues"
+  },
+  "homepage": "https://github.com/haslie22/node-crud-api#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "dotenv": "^16.4.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "nodemon": "^3.0.3",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
