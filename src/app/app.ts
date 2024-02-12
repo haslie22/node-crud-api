@@ -115,6 +115,11 @@ class App {
     });
     req.on('end', async () => {
       const userData = JSON.parse(body);
+      if (!userData.username || !userData.age || !userData.hobbies) {
+        this.serverError(StatusCodes.BAD_REQUEST, res, 'Missing required fields');
+        return;
+      }
+
       const newUser = await usersModel.addUser(userData);
       res.writeHead(StatusCodes.CREATED, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(newUser));
@@ -125,18 +130,24 @@ class App {
     req: IncomingMessage,
     res: ServerResponse,
     usersModel: UsersModel,
-    idParam?: string,
+    idParam: string,
   ): Promise<void> {
-    if (!idParam) {
+    if (!validate(idParam)) {
       this.serverError(StatusCodes.BAD_REQUEST, res, 'Invalid user ID');
       return;
     }
+
     let body = '';
     req.on('data', (chunk) => {
       body += chunk.toString();
     });
     req.on('end', async () => {
       const userData = JSON.parse(body);
+      if (!userData.username || !userData.age || !userData.hobbies) {
+        this.serverError(StatusCodes.BAD_REQUEST, res, 'Missing required fields');
+        return;
+      }
+
       const updatedUser = await usersModel.updateUser(idParam, userData);
       if (!updatedUser) {
         res.writeHead(StatusCodes.NOT_FOUND, { 'Content-Type': 'text/plain' });
@@ -152,9 +163,9 @@ class App {
     req: IncomingMessage,
     res: ServerResponse,
     usersModel: UsersModel,
-    idParam?: string,
+    idParam: string,
   ): Promise<void> {
-    if (!idParam) {
+    if (!validate(idParam)) {
       this.serverError(StatusCodes.BAD_REQUEST, res, 'Invalid user ID');
       return;
     }

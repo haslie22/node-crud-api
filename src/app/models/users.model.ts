@@ -15,7 +15,6 @@ class UsersModel {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    console.log('🚀 ~ UsersModel ~ getUser ~ id:', id);
     return this.users.find((user) => user.id === id);
   }
 
