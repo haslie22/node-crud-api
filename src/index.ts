@@ -1,12 +1,16 @@
-import http from 'http';
+import { config } from 'dotenv';
 
-const PORT = process.env.PORT || 3000;
+import App from './app/app';
+import UsersModel from './app/models/users.model';
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello, World!\n');
-});
+import { DEFAULT_PORT } from './app/utils/constants/constants';
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+config();
+
+const PORT = parseInt(process.env.PORT || DEFAULT_PORT, 10);
+
+const usersModel = new UsersModel();
+
+const app = new App(PORT, usersModel);
+
+app.start();
