@@ -1,8 +1,11 @@
 import { createServer, Server, IncomingMessage, ServerResponse } from 'http';
 
+import { validate } from 'uuid';
+
 import UsersModel from './models/users.model';
 
 import { StatusCodes } from './utils/constants/constants';
+import parseUrl from './utils/helpers/parseUrl';
 
 enum httpMethods {
   GET = 'GET',
@@ -12,7 +15,6 @@ enum httpMethods {
 }
 
 enum Routes {
-  USER = '/api/user',
   USERS = '/api/users',
 }
 
@@ -40,11 +42,8 @@ class App {
   private createRoutes(): { [key: string]: { [key: string]: RequestHandler } } {
     return {
       [Routes.USERS]: {
-        [httpMethods.GET]: this.handleGetUsers.bind(this),
+        [httpMethods.GET]: this.handleGetUserOrUsers.bind(this),
         [httpMethods.POST]: this.handleAddUser.bind(this),
-      },
-      [Routes.USER]: {
-        [httpMethods.GET]: this.handleGetUser.bind(this),
         [httpMethods.PUT]: this.handleUpdateUser.bind(this),
         [httpMethods.DELETE]: this.handleDeleteUser.bind(this),
       },
@@ -53,22 +52,34 @@ class App {
 
   private mapRoutes(): void {
     this.server.on('request', async (req: IncomingMessage, res: ServerResponse) => {
-      const method = req?.method ?? '';
-      const url = req?.url ?? '';
-      const idParam = url?.split('/')[3];
+      try {
+        const method = req?.method ?? '';
+        const { route, idParam } = parseUrl(req?.url ?? '');
 
-      const routeHandlers = this.routes[url];
-      if (routeHandlers && routeHandlers[method]) {
-        try {
+        const routeHandlers = this.routes[route];
+        if (routeHandlers && routeHandlers[method]) {
           await routeHandlers[method](req, res, this.usersModel, idParam);
-        } catch (err) {
-          console.error('Error handling request:', err);
-          this.serverError(res, 'Internal Server Error');
+        } else {
+          this.serverError(StatusCodes.NOT_FOUND, res, 'Page not found');
         }
-      } else {
-        this.serverError(res, 'Page not found');
+      } catch (err) {
+        console.error('Error handling request:', err);
+        this.serverError(StatusCodes.INTERNAL_SERVER_ERROR, res, 'Internal Server Error');
       }
     });
+  }
+
+  private async handleGetUserOrUsers(
+    req: IncomingMessage,
+    res: ServerResponse,
+    usersModel: UsersModel,
+    id?: string,
+  ): Promise<void> {
+    if (id) {
+      await this.handleGetUser(req, res, usersModel, id);
+    } else {
+      await this.handleGetUsers(req, res, usersModel);
+    }
   }
 
   private async handleGetUsers(req: IncomingMessage, res: ServerResponse, usersModel: UsersModel): Promise<void> {
@@ -77,32 +88,14 @@ class App {
     res.end(JSON.stringify(users));
   }
 
-  private async handleAddUser(req: IncomingMessage, res: ServerResponse, usersModel: UsersModel): Promise<void> {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString();
-    });
-    req.on('end', async () => {
-      try {
-        const userData = JSON.parse(body);
-        const newUser = await usersModel.addUser(userData);
-        res.writeHead(StatusCodes.CREATED, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(newUser));
-      } catch (error) {
-        console.error('Error adding user:', error);
-        this.serverError(res, 'Error adding user');
-      }
-    });
-  }
-
   private async handleGetUser(
     req: IncomingMessage,
     res: ServerResponse,
     usersModel: UsersModel,
-    idParam?: string,
+    idParam: string,
   ): Promise<void> {
-    if (!idParam) {
-      this.serverError(res, 'Invalid user ID');
+    if (!validate(idParam)) {
+      this.serverError(StatusCodes.BAD_REQUEST, res, 'Invalid user ID');
       return;
     }
     const user = await usersModel.getUser(idParam);
@@ -115,6 +108,19 @@ class App {
     res.end(JSON.stringify(user));
   }
 
+  private async handleAddUser(req: IncomingMessage, res: ServerResponse, usersModel: UsersModel): Promise<void> {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+    req.on('end', async () => {
+      const userData = JSON.parse(body);
+      const newUser = await usersModel.addUser(userData);
+      res.writeHead(StatusCodes.CREATED, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(newUser));
+    });
+  }
+
   private async handleUpdateUser(
     req: IncomingMessage,
     res: ServerResponse,
@@ -122,7 +128,7 @@ class App {
     idParam?: string,
   ): Promise<void> {
     if (!idParam) {
-      this.serverError(res, 'Invalid user ID');
+      this.serverError(StatusCodes.BAD_REQUEST, res, 'Invalid user ID');
       return;
     }
     let body = '';
@@ -130,20 +136,15 @@ class App {
       body += chunk.toString();
     });
     req.on('end', async () => {
-      try {
-        const userData = JSON.parse(body);
-        const updatedUser = await usersModel.updateUser(idParam, userData);
-        if (!updatedUser) {
-          res.writeHead(StatusCodes.NOT_FOUND, { 'Content-Type': 'text/plain' });
-          res.end('User not found');
-          return;
-        }
-        res.writeHead(StatusCodes.OK, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(updatedUser));
-      } catch (error) {
-        console.error('Error updating user:', error);
-        this.serverError(res, 'Error updating user');
+      const userData = JSON.parse(body);
+      const updatedUser = await usersModel.updateUser(idParam, userData);
+      if (!updatedUser) {
+        res.writeHead(StatusCodes.NOT_FOUND, { 'Content-Type': 'text/plain' });
+        res.end('User not found');
+        return;
       }
+      res.writeHead(StatusCodes.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(updatedUser));
     });
   }
 
@@ -154,7 +155,7 @@ class App {
     idParam?: string,
   ): Promise<void> {
     if (!idParam) {
-      this.serverError(res, 'Invalid user ID');
+      this.serverError(StatusCodes.BAD_REQUEST, res, 'Invalid user ID');
       return;
     }
     const deleted = await usersModel.deleteUser(idParam);
@@ -167,8 +168,8 @@ class App {
     res.end();
   }
 
-  private serverError(res: ServerResponse, message: string): void {
-    res.writeHead(StatusCodes.INTERNAL_SERVER_ERROR, { 'Content-Type': 'text/plain' });
+  private serverError(statusCode: StatusCodes, res: ServerResponse, message: string): void {
+    res.writeHead(statusCode, { 'Content-Type': 'text/plain' });
     res.end(message);
   }
 
