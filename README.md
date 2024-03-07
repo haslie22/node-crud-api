@@ -1,10 +1,10 @@
 # Node.js CRUD API
 
-## Overview
+## Overview 🔍
 
 This project implements a simple CRUD API using an in-memory database underneath. It allows for the creation, retrieval, updating, and deletion of user records.
 
-## Technical Requirements
+## Technical Requirements 📋
 
 Please, [download](https://nodejs.org/en/download/) and install 20 LTS version of Node.js to run the API.
 
@@ -16,7 +16,7 @@ To check your version, run
 node -v
 ```
 
-## Running the API
+## Running the API 🚗
 
 Clone this repo
 
@@ -74,12 +74,12 @@ Start multi instances with a load balancer for production:
 npm run start:multi
 ```
 
-#### Environmental Variables
+#### Environmental Variables 🌐
 
 You can specify what port to use in `.env` file, which is stored in root directory.  
 The port `4000` is stored there by default.
 
-## Using the API
+## Using the API 🚀
 
 You can use this Postman collection to test the API:
 
@@ -87,7 +87,7 @@ You can use this Postman collection to test the API:
 
 _Don't forget to adjust some data like `id` according to your needs_
 
-## API Endpoints
+## API Endpoints 📡
 
 | Method | Endpoint              | Description                           |
 | ------ | --------------------- | ------------------------------------- |
@@ -97,7 +97,7 @@ _Don't forget to adjust some data like `id` according to your needs_
 | PUT    | `/api/users/{userId}` | Update an existing user record        |
 | DELETE | `/api/users/{userId}` | Delete an existing user record        |
 
-## User Data Structure
+## User Data Structure 🧑‍💻
 
 Users are stored as objects that have the following properties:
 
